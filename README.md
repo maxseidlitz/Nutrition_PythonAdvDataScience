@@ -2,7 +2,7 @@
 
 Abschlussprojekt für den TUM-Kurs **Python and Advanced Data Science** (Dozent: Batuhan Can).
 
-**Team:** Maximillian Seidlitz, Niklas Matusik, Bilal Mert, Bui Ngoc Minh Quach  
+**Team:** Maximilian Seidlitz, Niklas Matusik, Bilal Mert, Bui Ngoc Minh Quach  
 **Abgabe:** 21.07.2026
 
 ## Ziel
