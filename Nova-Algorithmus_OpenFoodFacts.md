@@ -1,6 +1,8 @@
-# NOVA-Zirkularität in Open Food Facts — offener Punkt, noch nicht umgesetzt
+# NOVA-Zirkularität in Open Food Facts
 
-Status: **nicht im Notebook behandelt**, bewusst auf später verschoben. Dieses Dokument hält den Stand fest, damit wir es nicht vergessen.
+Status: **im Notebook umgesetzt.** Abschnitt 1.1 enthält jetzt einen Caveat-Absatz, Abschnitt 13.1 ("Leakage Check: Control Model Without additives_n / Category") ein Kontrollmodell ohne `additives_n`/`main_category_grouped`, das Fazil (Abschnitt 16) verweist darauf. Dieses Dokument bleibt als ausführlicher Hintergrund bestehen.
+
+**Offen:** Die neuen Zellen in Abschnitt 13.1 müssen einmal ausgeführt werden (Kernel neu starten oder ab dem Parquet-Cache weiterlaufen lassen), danach die `[TODO]`-Platzhalter in Abschnitt 13.1 und im Fazit mit den echten `drop_in_f1_points`-Werten füllen.
 
 ## Das Problem in Kürze
 
