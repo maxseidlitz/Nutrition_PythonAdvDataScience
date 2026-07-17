@@ -13,7 +13,10 @@ Einfache Übersicht zu `PyTUMs_Final_Project_Niklas-2.ipynb` — Kapitel für Ka
 - **NOVA (Hauptthema):** Lebensmittel werden in 4 Gruppen eingeteilt — von unverarbeitet (1) bis ultra-verarbeitet (4). Wichtig sind vor allem Zutaten, Zusatzstoffe und Verarbeitung — nicht nur Nährwerte.
 - **Nutri-Score (Vergleich):** Ampel von A (gut) bis E (schlecht), berechnet direkt aus Nährwerten wie Zucker, Fett und Salz.
 
-**Warum wichtig?** NOVA und Nutri-Score messen unterschiedliche Dinge. Ein Produkt kann gut bewertet sein (A), aber trotzdem stark verarbeitet (NOVA 4).
+**Erkenntnisse:**
+- NOVA und Nutri-Score messen **zwei verschiedene Dimensionen**: Verarbeitungsgrad vs. Nährwertprofil.
+- Ein Produkt kann **gut bewertet sein (A) und trotzdem ultra-verarbeitet (NOVA 4)** — das wird später in Kapitel 9 bestätigt.
+- Wichtiger Hinweis: Die `nova_group`-Spalte in Open Food Facts wird **nicht manuell** vergeben, sondern per Regel-Algorithmus (Kategorie + Zusatzstoffe). Deshalb prüft Kapitel 13.1, ob das Modell „schummelt“.
 
 ---
 
@@ -25,12 +28,17 @@ Einfache Übersicht zu `PyTUMs_Final_Project_Niklas-2.ipynb` — Kapitel für Ka
 
 **Vier Hypothesen (kurz):**
 
-| Hypo | Inhalt |
-|------|--------|
-| H1 | Mehr Zusatzstoffe/Zutaten → eher NOVA 4 |
-| H2 | NOVA ist schwerer vorherzusagen als Nutri-Score |
-| H3 | Nutri-Score und NOVA hängen zusammen, sind aber nicht dasselbe |
-| H4 | Clustering nach Nährwerten ähnelt eher Nutri-Score als NOVA |
+| Hypo | Inhalt | Ergebnis |
+|------|--------|----------|
+| H1 | Mehr Zusatzstoffe/Zutaten → eher NOVA 4 | Bestätigt |
+| H2 | NOVA ist schwerer vorherzusagen als Nutri-Score | Nicht bestätigt (mit Erklärung) |
+| H3 | Nutri-Score und NOVA hängen zusammen, sind aber nicht dasselbe | Bestätigt |
+| H4 | Clustering nach Nährwerten ähnelt eher Nutri-Score als NOVA | Bestätigt (schwach) |
+
+**Erkenntnisse:**
+- Das Projekt hat **zwei Zielvariablen**: NOVA (Hauptproblem) und Nutri-Score (Vergleich).
+- Zusätzlich wird **Clustering** genutzt, um zu prüfen, ob Nährwerte allein sinnvolle Gruppen bilden.
+- Die Hypothesen geben der gesamten Analyse eine klare Struktur — am Ende wird jede einzeln bewertet (Kapitel 16).
 
 ---
 
@@ -42,7 +50,9 @@ Einfache Übersicht zu `PyTUMs_Final_Project_Niklas-2.ipynb` — Kapitel für Ka
 - Bibliotheken laden: `pandas`, `numpy`, `matplotlib`, `seaborn`, `scikit-learn`, `datasets`
 - Fester Zufallswert (`SEED = 42`) für reproduzierbare Ergebnisse
 
-**Einfach gesagt:** Hier wird das „Werkzeug“ bereitgestellt, bevor mit Daten gearbeitet wird.
+**Erkenntnisse:**
+- Keine inhaltlichen Erkenntnisse — hier wird nur das technische Fundament gelegt.
+- Der feste Seed sorgt dafür, dass Train/Test-Split, Modelltraining und Clustering bei jedem Durchlauf gleich bleiben.
 
 ---
 
@@ -50,13 +60,15 @@ Einfache Übersicht zu `PyTUMs_Final_Project_Niklas-2.ipynb` — Kapitel für Ka
 
 **Worum geht es?** Woher die Daten kommen und wie die Stichprobe entsteht.
 
-- Datenquelle: **Open Food Facts** über Hugging Face
-- Die komplette Datenbank ist zu groß → es wird eine **Stichprobe** gezogen
+- Datenquelle: **Open Food Facts** über Hugging Face (~4,6 Mio. Produkte)
 - Methode: **Reservoir Sampling** (echte Zufallsstichprobe aus dem gesamten Stream)
 - Stichprobengröße: **100.000 Produkte**
-- Ergebnis wird als `openfoodfacts_raw_sample.parquet` gespeichert (muss nicht jedes Mal neu geladen werden)
+- Ergebnis wird als `openfoodfacts_raw_sample.parquet` gespeichert
 
-**Einfach gesagt:** Hier holt man sich die Rohdaten und speichert eine feste, zufällige Teilmenge ab.
+**Erkenntnisse:**
+- Die alte Methode (nur die ersten Zeilen des Streams) hätte **verzerrte** Ergebnisse geliefert — z. B. zu viele gut gepflegte Produkte mit NOVA-Label.
+- Reservoir Sampling ist langsamer (einmaliger Voll-Scan), liefert aber eine **repräsentative** Stichprobe.
+- Die Stichprobe ist dokumentiert (`openfoodfacts_raw_sample_meta.json`: 4.610.617 gestreamte Zeilen → 100.000 gezogen).
 
 ---
 
@@ -69,7 +81,11 @@ Einfache Übersicht zu `PyTUMs_Final_Project_Niklas-2.ipynb` — Kapitel für Ka
 - Wie viele Werte fehlen bei NOVA und Nutri-Score?
 - Hängt Nutri-Score-Verfügbarkeit vom **Land** ab?
 
-**Einfach gesagt:** Hier schaut man sich an, was überhaupt in den Daten steht — bevor man aufräumt.
+**Erkenntnisse:**
+- **100.000 Zeilen, 111 Spalten** — große, verschachtelte Rohdaten.
+- **NOVA fehlt bei ~75,6 %** der Produkte (75.580 von 100.000) — viel Lücken in den Labels.
+- **Nutri-Score hängt stark vom Land ab**: In Pakistan, Japan, Russland etc. fast 0 % Verfügbarkeit; in Frankreich/Deutschland deutlich höher.
+- Die Daten sind **nicht zufällig fehlend** — nach dem Filtern auf gültige Labels entsteht faktisch ein europäisch geprägter Teildatensatz.
 
 ---
 
@@ -80,7 +96,11 @@ Einfache Übersicht zu `PyTUMs_Final_Project_Niklas-2.ipynb` — Kapitel für Ka
 - **Nutri-Score:** Nur gültige Klassen A–E behalten (`unknown` usw. raus)
 - **NOVA:** Gruppen 1–4 sauber extrahieren (verschiedene Spaltenformate werden vereinheitlicht)
 
-**Einfach gesagt:** Hier werden die „Antworten“ für das Machine Learning festgelegt und bereinigt.
+**Erkenntnisse:**
+- **Nutri-Score:** Von 100.000 bleiben **29.703** mit gültigem Label (A–E).
+- **NOVA:** Von 100.000 haben nur **24.420** eine gültige Gruppe (1–4).
+- NOVA-Verteilung in den Rohdaten: Gruppe 4 dominiert (15.549), Gruppe 2 ist selten (1.468).
+- Die Normalisierungsfunktion war nötig, weil NOVA in Open Food Facts in **unterschiedlichen Formaten** gespeichert ist (Zahl vs. Tag-Liste).
 
 ---
 
@@ -93,7 +113,10 @@ Einfache Übersicht zu `PyTUMs_Final_Project_Niklas-2.ipynb` — Kapitel für Ka
 
 **Features insgesamt:** 9 Nährwerte + 2 Zähler (Zusatzstoffe/Zutaten) + Kategorie
 
-**Einfach gesagt:** Aus unübersichtlichen Rohdaten werden normale Zahlen-Spalten fürs Modell.
+**Erkenntnisse:**
+- Aus verschachtelten Listen/Dicts werden **normale Zahlen-Spalten** — ohne das geht kein Machine Learning.
+- **Kategorien sind sehr unvollständig:** 60.600 von 100.000 Produkte haben keine Kategorie (`missing`); die Top-15-Kategorien decken den Rest ab.
+- `additives_n` und `ingredients_n` sind besonders wichtig für NOVA — sie kommen direkt aus der NOVA-Definition.
 
 ---
 
@@ -103,12 +126,16 @@ Einfache Übersicht zu `PyTUMs_Final_Project_Niklas-2.ipynb` — Kapitel für Ka
 
 - Unrealistische Werte entfernen (z. B. negative Gramm, Zucker > Kohlenhydrate)
 - Doppelte Produkte (gleicher Barcode) entfernen
-- Fehlende Werte werden **später** im ML-Pipeline-Schritt behandelt (nicht vor dem Train/Test-Split — verhindert Data Leakage)
-- Zwei finale Datensätze:
-  - `df_model_nova` → NOVA vorhersagen
-  - `df_model_nutri` → Nutri-Score vorhersagen
+- Fehlende Werte werden **später** im ML-Pipeline-Schritt behandelt (verhindert Data Leakage)
+- Zwei finale Datensätze: `df_model_nova` und `df_model_nutri`
 
-**Einfach gesagt:** Hier wird aus „chaotischen“ Daten ein sauberer Datensatz fürs Training.
+**Erkenntnisse:**
+- **25.161 von 100.000 Zeilen** werden durch Plausibilitätsregeln entfernt (100.000 → 74.839).
+- Nach Filter auf gültige Labels:
+  - **NOVA-Datensatz: 23.406 Produkte**
+  - **Nutri-Score-Datensatz: 28.924 Produkte**
+- 0 Duplikate per Barcode (bei 100.000 aus 4,6 Mio. unwahrscheinlich).
+- Die strengen Regeln (ganze Zeile löschen statt einzelne Werte) sind bewusst konservativ — lieber weniger, aber saubere Daten.
 
 ---
 
@@ -121,7 +148,27 @@ Einfache Übersicht zu `PyTUMs_Final_Project_Niklas-2.ipynb` — Kapitel für Ka
 - Wie stark korrelieren Features miteinander?
 - **Kreuztabelle Nutri-Score × NOVA** → testet Hypothese H3
 
-**Einfach gesagt:** Hier werden die Daten visualisiert und beschrieben — „Was steckt drin?“
+**Erkenntnisse:**
+
+*Nutri-Score-Verteilung (n = 28.924):*
+- E und D sind am häufigsten (27,5 % und 25,4 %), A und B sind unterrepräsentiert (14,4 % und 11,6 %).
+- Die Stichprobe ist **leicht unbalanciert** — deshalb wird später gewichteter F1-Score statt Accuracy genutzt.
+
+*NOVA-Verteilung (n = 23.406):*
+- **Gruppe 4 (ultra-verarbeitet): 64,7 %** — stark dominierend.
+- Gruppe 2 nur 4,8 % — die seltenste Klasse.
+
+*Nährwerte nach NOVA-Gruppe:*
+- Gruppe 4 hat im Schnitt **3,19 Zusatzstoffe** und **22,4 Zutaten** — deutlich mehr als Gruppe 1 (0,07 / 2,6).
+- Bestätigt die NOVA-Logik: mehr Verarbeitung = mehr Zusatzstoffe.
+
+*Kreuztabelle Nutri-Score × NOVA (H3):*
+- Selbst bei **Nutri-Score A** sind **27 %** NOVA-Gruppe 4 (ultra-verarbeitert).
+- Bei **Nutri-Score E** sind **77 %** NOVA-Gruppe 4.
+- Diese Werte stimmen fast exakt mit publizierten Studien überein (z. B. 26,1 % für A in Romero Ferreiro et al., 2021).
+
+*Korrelationen:*
+- Salz/Sodium, Fett/gesättigtes Fett und Kohlenhydrate/Zucker sind stark korreliert — Baum-Modelle kommen damit besser klar als lineare.
 
 ---
 
@@ -133,7 +180,10 @@ Einfache Übersicht zu `PyTUMs_Final_Project_Niklas-2.ipynb` — Kapitel für Ka
 - **Pipeline:** fehlende Werte mit Median füllen, Zahlen skalieren, Kategorien one-hot encodieren
 - Wichtig: Alles wird nur auf den **Trainingsdaten** angepasst, dann auf Test angewendet
 
-**Einfach gesagt:** Hier wird aus den sauberen Daten ein fairer Trainings- und Testdatensatz.
+**Erkenntnisse:**
+- NOVA-Trainingsdaten: **18.628 Zeilen**, Test: **4.658 Zeilen**.
+- Klassenverteilung bleibt im Train- und Testset gleich (z. B. 67 % NOVA 4 in beiden).
+- Die Pipeline verhindert **Data Leakage** — im Gegensatz zur früheren Notebook-Version, die Median-Werte vor dem Split berechnet hatte.
 
 ---
 
@@ -141,11 +191,15 @@ Einfache Übersicht zu `PyTUMs_Final_Project_Niklas-2.ipynb` — Kapitel für Ka
 
 **Worum geht es?** Produkte **ohne** Zielvariable in Gruppen clustern — nur nach Nährwerten.
 
-- Methode: **K-Means** (Anzahl Cluster per Silhouette-Score gewählt)
+- Methode: **K-Means** mit k = 8 (gewählt per Silhouette-Score)
 - Frage: Ähneln die Cluster eher **Nutri-Score** oder **NOVA**? → testet H4
-- Ergebnis: Leichte Übereinstimmung mit Nutri-Score, kaum mit NOVA
 
-**Einfach gesagt:** „Finden Nährwerte allein schon sinnvolle Produktgruppen — und passen die zu unseren Labels?“
+**Erkenntnisse:**
+- Die ersten zwei PCA-Komponenten erklären **51,2 %** der Varianz — moderate Zusammenfassung.
+- **ARI mit Nutri-Score: 0,082** (schwach positiv)
+- **ARI mit NOVA: 0,030** (noch schwächer)
+- H4 ist bestätigt: Nährwert-Cluster ähneln Nutri-Score etwas mehr als NOVA — aber beide Werte sind absolut niedrig.
+- Clustering allein reicht **nicht** als Ersatz für die Labels — deshalb folgen die überwachten Modelle in Kapitel 12–15.
 
 ---
 
@@ -153,68 +207,112 @@ Einfache Übersicht zu `PyTUMs_Final_Project_Niklas-2.ipynb` — Kapitel für Ka
 
 **Worum geht es?** Sechs Modelle trainieren, um **NOVA** vorherzusagen (Hauptaufgabe).
 
-| Modell | Typ |
-|--------|-----|
-| Logistic Regression | Linear (Baseline) |
-| K-Nearest Neighbors | Nachbarn im Feature-Raum |
-| Decision Tree | Entscheidungsbaum |
-| Random Forest | Ensemble (Bagging) |
-| Gradient Boosting | Ensemble (Boosting) |
-| MLP | Neuronales Netz |
+| Modell | Typ | F1 (gewichtet) |
+|--------|-----|----------------|
+| **Random Forest** | Ensemble (Bagging) | **0,857** |
+| Gradient Boosting | Ensemble (Boosting) | 0,841 |
+| Decision Tree | Baum | 0,831 |
+| K-Nearest Neighbors | Nachbarn | 0,816 |
+| MLP (Neuronales Netz) | Deep Learning | 0,815 |
+| Logistic Regression | Linear (Baseline) | 0,808 |
 
-**Einfach gesagt:** Hier wird aus den Features die NOVA-Gruppe vorhergesagt — mit verschiedenen Algorithmen.
+**Erkenntnisse:**
+- **Random Forest ist das beste Modell** für NOVA (F1 = 0,857).
+- Lineare Modelle schneiden schlechter ab — die Beziehung zwischen Features und NOVA ist **nicht-linear** (z. B. viele Zusatzstoffe + viele Zutaten → eher Gruppe 4).
+- Alle Modelle liegen über 80 % F1 — NOVA ist aus den vorhandenen Features **gut vorhersagbar**, zumindest mit Zusatzstoff-/Kategorie-Features.
 
 ---
 
 ## 13. Model Comparison (NOVA)
 
-**Worum geht es?** Die sechs NOVA-Modelle vergleichen.
+**Worum geht es?** Die sechs NOVA-Modelle vergleichen und Feature-Wichtigkeit analysieren.
 
-- Hauptmetrik: **gewichteter F1-Score** (wegen unbalancierter Klassen)
-- Zusätzlich: Accuracy, Precision, Recall, Confusion Matrix
-- **Feature Importance:** Welche Variablen sind am wichtigsten? → bestätigt H1 (Zusatzstoffe/Zutaten)
-- **Abschnitt 13.1:** Kontrollmodell **ohne** `additives_n` und Kategorie — prüft, ob das Modell „schummelt“ (Data Leakage durch Open-Food-Facts-eigene NOVA-Regeln)
+- Hauptmetrik: **gewichteter F1-Score**
+- **Feature Importance** (Random Forest)
+- **Abschnitt 13.1:** Kontrollmodell **ohne** `additives_n` und Kategorie
 
-**Einfach gesagt:** Welches Modell ist am besten — und worauf basiert die Vorhersage wirklich?
+**Erkenntnisse:**
+
+*Feature Importance (Random Forest):*
+| Feature | Wichtigkeit |
+|---------|-------------|
+| `ingredients_n` | 22,1 % |
+| `additives_n` | 19,4 % |
+| `energy-kcal_100g` | 7,6 % |
+| (restliche Nährwerte) | jeweils < 7 % |
+
+- Zusatzstoffe + Zutaten machen zusammen **~41,5 %** der Wichtigkeit aus → bestätigt **H1**.
+
+*Leakage-Check (Kapitel 13.1):*
+| Modell | Mit allen Features | Nur Nährwerte | Verlust |
+|--------|-------------------|---------------|---------|
+| Random Forest | 0,857 | 0,744 | **−11,3 Punkte** |
+| Logistic Regression | 0,808 | 0,596 | **−21,1 Punkte** |
+
+- Ohne Zusatzstoffe/Kategorie fällt die Vorhersage deutlich — ein Teil der Modellgüte kommt von Features, die Open Food Facts selbst für die NOVA-Berechnung nutzt.
+- Trotzdem bleibt F1 = 0,744 nur mit Nährwerten — also ist NOVA **teilweise** aus Nährwerten vorhersagbar.
 
 ---
 
 ## 14. Hyperparameter Tuning
 
-**Worum geht es?** Die zwei besten Modelle noch einmal optimieren.
+**Worum geht es?** Die zwei besten Modelle noch einmal optimieren (GridSearchCV, 5-fach Kreuzvalidierung).
 
-- **GridSearchCV** mit 5-fach Kreuzvalidierung
-- Optimiert: Random Forest und Gradient Boosting
-- Vergleich: Baseline vs. getunt
+| Modell | Baseline | Getunt | Änderung |
+|--------|----------|--------|----------|
+| Random Forest | 0,857 | 0,856 | ≈ 0 (kein Gewinn) |
+| Gradient Boosting | 0,841 | 0,849 | **+0,8 Punkte** |
 
-**Einfach gesagt:** Feintuning der besten Modelle — bringt bei Random Forest kaum etwas, bei Gradient Boosting etwas mehr.
+**Erkenntnisse:**
+- **Random Forest** war schon nahezu optimal — Tuning bringt nichts.
+- **Gradient Boosting** profitiert vom Tuning, überholt Random Forest aber nicht (0,849 vs. 0,857).
+- Random Forest bleibt das **beste Gesamtmodell** für NOVA.
 
 ---
 
 ## 15. Nutri-Score Classification (Secondary Problem)
 
-**Worum geht es?** Dasselbe Spiel für **Nutri-Score** — als Vergleichsaufgabe.
+**Worum geht es?** Dasselbe Spiel für **Nutri-Score** — als Vergleichsaufgabe (nur 9 Nährwert-Features, 3 Modelle).
 
-- Nur die 9 Nährwert-Features (keine Zusatzstoffe/Kategorie)
-- Drei Modelle: Logistic Regression, Random Forest, Gradient Boosting
-- Direkter Vergleich: NOVA vs. Nutri-Score → testet H2
+| Modell | F1 (gewichtet) |
+|--------|----------------|
+| **Random Forest** | **0,827** |
+| Gradient Boosting | 0,815 |
+| Logistic Regression | 0,645 |
 
-**Einfach gesagt:** Kann man Nutri-Score aus Nährwerten vorhersagen — und ist das leichter als NOVA?
+**Direkter Vergleich NOVA vs. Nutri-Score:**
 
-**Ergebnis (überraschend):** NOVA-Modell schneidet etwas besser ab, weil es mehr Features nutzt.
+| Problem | Bestes Modell | F1 |
+|---------|---------------|-----|
+| NOVA (Hauptproblem) | Random Forest | **0,857** |
+| Nutri-Score (Vergleich) | Random Forest | **0,827** |
+
+**Erkenntnisse:**
+- **H2 ist nicht bestätigt:** NOVA wird sogar etwas besser vorhergesagt als Nutri-Score.
+- Grund: Das NOVA-Modell nutzt **mehr Features** (Zusatzstoffe, Kategorie), die sehr stark sind.
+- Nutri-Score ist mit **nur Nährwerten** schon gut vorhersagbar (0,827) — das war zu erwarten, weil Nutri-Score direkt aus Nährwerten berechnet wird.
+- Der faire Vergleich (nur Nährwerte für beide) steht in Kapitel 13.1: dort fällt NOVA auf 0,744 — **unter** Nutri-Score.
 
 ---
 
 ## 16. Conclusion
 
-**Worum geht es?** Alles zusammenfassen.
+**Worum geht es?** Alles zusammenfassen und Grenzen benennen.
 
-- Alle vier Hypothesen bewerten (H1 ✓, H2 ✗ mit Erklärung, H3 ✓, H4 ✓)
-- Bestes Modell: **Random Forest** für beide Aufgaben
-- Wichtige Limitationen: Stichprobengröße, fehlende Werte, Länderbias, mögliches Leakage bei NOVA
-- Fazit: Nährwert-Labels und Verarbeitungsgrad sind **verschiedene Dimensionen** der Lebensmittelbewertung
+**Erkenntnisse — Hypothesen im Überblick:**
 
-**Einfach gesagt:** Was haben wir gelernt — und was sind die Grenzen der Analyse?
+| Hypothese | Ergebnis | Kurzfassung |
+|-----------|----------|-------------|
+| H1: Zusatzstoffe/Zutaten → NOVA 4 | Bestätigt | Wichtigste Features (41,5 % Importance) |
+| H2: NOVA schwerer als Nutri-Score | Nicht bestätigt | NOVA-F1 (0,857) > Nutri-F1 (0,827), aber unterschiedliche Features |
+| H3: NOVA ≠ Nutri-Score | Bestätigt | 27 % der A-Produkte sind trotzdem NOVA 4 |
+| H4: Clustering ≈ Nutri-Score | Bestätigt (schwach) | ARI 0,082 vs. 0,030 |
+
+**Wichtigste Gesamterkenntnisse:**
+1. **Nährwert und Verarbeitung sind verschiedene Dimensionen** — ein „gesundes“ Label sagt nichts über den Verarbeitungsgrad aus.
+2. **Random Forest** ist das beste Modell für beide Aufgaben.
+3. **Reservoir Sampling** war entscheidend — die alte Stichprobe war verzerrt und lieferte zu optimistische Ergebnisse.
+4. **Limitationen:** Europäischer Datenbias, viele fehlende NOVA-Labels, mögliches Leakage durch Open-Food-Facts-NOVA-Algorithmus, starke Klassen-Ungleichgewichte (besonders NOVA Gruppe 2 mit nur 4,8 %).
 
 ---
 
