@@ -1,5 +1,6 @@
 # Datensätze
 *.csv
+*.parquet
 
 # Python
 __pycache__/

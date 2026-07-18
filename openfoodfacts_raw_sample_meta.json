@@ -1,0 +1,7 @@
+{
+  "sample_size": 100000,
+  "rows_streamed_total": 4610617,
+  "seed": 42,
+  "method": "reservoir sampling (Algorithm R) over the full streamed dataset",
+  "created_at": "2026-07-16T15:09:36"
+}

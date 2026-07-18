@@ -1,4 +1,4 @@
-# PyTUMs: Open Food Facts
+# PyTUMs: Open Food Facts — NOVA & Nutri-Score
 
 Abschlussprojekt für den TUM-Kurs **Python and Advanced Data Science** (Dozent: Batuhan Can).
 
@@ -7,18 +7,30 @@ Abschlussprojekt für den TUM-Kurs **Python and Advanced Data Science** (Dozent:
 
 ## Ziel
 
-Vorhersage des **Nutri-Score** (Klassen A–E) anhand der Nährwertangaben pro 100 g. Die Analyse basiert auf Produktdaten aus der Open-Food-Facts-Datenbank.
+Vorhersage der **NOVA-Gruppe** (Verarbeitungsgrad 1–4) anhand von Nährwerten, Zusatzstoff-/Zutaten-Anzahl und Produktkategorie — und Vergleich mit der Vorhersage des **Nutri-Score** (A–E).
+
+NOVA und Nutri-Score messen unterschiedliche Dimensionen: Verarbeitungsgrad vs. Nährwertprofil. Ein Produkt kann z. B. Nutri-Score A haben und trotzdem ultra-verarbeitet sein (NOVA 4).
+
+## Hauptergebnisse
+
+| Aufgabe | Bestes Modell | F1 (gewichtet) |
+|---|---|---|
+| **NOVA** (Hauptproblem) | Random Forest | **0,857** |
+| **Nutri-Score** (Vergleich) | Random Forest | **0,827** |
+
+Wichtigste Features für NOVA: `ingredients_n` (22,1 %) und `additives_n` (19,4 %). Ohne Zusatzstoffe/Kategorie fällt NOVA-F1 auf 0,744 (Leakage-Check).
 
 ## Datensatz
 
 | Eigenschaft | Beschreibung |
 |---|---|
 | **Quelle** | [Open Food Facts Product Database](https://huggingface.co/datasets/openfoodfacts/product-database) auf Hugging Face |
-| **Laden** | `load_dataset("openfoodfacts/product-database", split="food", streaming=True)` |
-| **Stichprobe** | 10.000 Produkte per Streaming (`dataset.take(10000)`) |
-| **Spalten** | 111 (u. a. Produktname, Kategorien, Marken, Zutaten, `nutriments`, `nutriscore_grade`) |
-| **Zielvariable** | `nutriscore_grade` — Buchstaben A (beste) bis E (schlechteste) |
-| **Features** | Nährwerte pro 100 g, extrahiert aus dem verschachtelten Feld `nutriments` |
+| **Laden** | Streaming über `datasets` (~4,6 Mio. Produkte) |
+| **Stichprobe** | **100.000** Produkte per **Reservoir Sampling** (Algorithm R, Seed 42) |
+| **Rohdaten** | `openfoodfacts_raw_sample.parquet` (+ Meta in `openfoodfacts_raw_sample_meta.json`) |
+| **Modelldaten** | `openfoodfacts_model_data_nova.csv` (23.406), `openfoodfacts_model_data_nutriscore.csv` (28.924) |
+| **Zielvariablen** | `nova_group` (1–4, Hauptproblem), `nutriscore_grade` (A–E, Vergleich) |
+| **Features** | 9 Nährwerte/100 g + `additives_n` + `ingredients_n` + Kategorie |
 
 ### Relevante Nährstoff-Features
 
@@ -34,55 +46,44 @@ Vorhersage des **Nutri-Score** (Klassen A–E) anhand der Nährwertangaben pro 1
 | `salt_100g` | Salz (g/100 g) |
 | `sodium_100g` | Natrium (g/100 g) |
 
-### Datenqualität (aktueller Stand)
+### Datenqualität
 
-- Von 10.000 Rohdatensätzen haben **8.517** einen gültigen Nutri-Score (A–E); `unknown` und `not-applicable` werden entfernt.
-- Nach Bereinigung unrealistischer Werte (negative Werte, Gramm-Features > 100 g, Energie > 1.000 kcal/100 g) verbleiben **6.092** Zeilen.
-- Fehlende Werte werden per **Median-Imputation** (`SimpleImputer`) aufgefüllt.
+- Von 100.000 Rohprodukten haben **24.420** eine gültige NOVA-Gruppe und **29.703** einen gültigen Nutri-Score (A–E).
+- Nach Plausibilitätsregeln und Label-Filter: **23.406** (NOVA) bzw. **28.924** (Nutri-Score) Produkte.
+- Fehlende Werte werden erst **nach** dem Train/Test-Split per Median-Imputation in der Pipeline behandelt (kein Data Leakage).
+- Labels fehlen nicht zufällig (stark länderabhängig) → faktisch europäisch geprägter Teildatensatz.
 
-**Klassenverteilung nach Bereinigung:**
+**NOVA-Verteilung (n = 23.406):** Gruppe 4 dominiert mit 64,7 %; Gruppe 2 nur 4,8 %.
 
-| Nutri-Score | Anteil |
+## Notebook-Struktur
+
+Hauptnotebook: [`PyTUMs_Final_Project_Niklas-2.ipynb`](PyTUMs_Final_Project_Niklas-2.ipynb)
+
+Kapitelübersicht: [`Kapitel-Erklaerung.md`](Kapitel-Erklaerung.md)
+
+| Kapitel | Inhalt |
 |---|---|
-| A | 27,6 % |
-| B | 11,2 % |
-| C | 15,7 % |
-| D | 18,2 % |
-| E | 27,3 % |
+| 1–2 | Domain Knowledge, Problem Statement & Hypothesen |
+| 3–4 | Setup, Bibliotheken, Datenextraktion (Reservoir Sampling) |
+| 5–8 | Datenverständnis, Zielvariablen, Feature-Extraktion, Cleaning |
+| 9 | EDA (Verteilungen, Korrelationen, Nutri-Score × NOVA) |
+| 10 | Preprocessing (stratifizierter Split, ML-Pipeline) |
+| 11 | Clustering (K-Means, Vergleich mit Labels via ARI) |
+| 12–14 | NOVA-Klassifikation, Modellvergleich, Hyperparameter-Tuning |
+| 15 | Nutri-Score-Klassifikation (Vergleichsaufgabe) |
+| 16 | Conclusion & Hypothesenbewertung |
 
-## Aktueller Stand im Notebook (`PyTUMs.ipynb`)
-
-Das Notebook ist in drei Abschnitte gegliedert:
-
-### 1. Data Extraction
-- Installation und Import der Bibliotheken (`datasets`, `pandas`, `numpy`, `matplotlib`, `seaborn`, `scikit-learn`)
-- Streaming-Laden der Open-Food-Facts-Datenbank
-- Erstellung eines 10.000-Zeilen-DataFrames
-- Erste Inspektion: Form, Spalten, Verteilung der Nutri-Score-Klassen
-
-### 2. Data Cleaning and Preparation
-- Filterung auf gültige Nutri-Score-Klassen (`a`–`e`)
-- Extraktion der Nährwerte aus `nutriments` in eigene Spalten
-- Aufbau des Modell-Datasets `df_model` (9 Features + Zielvariable)
-- Analyse fehlender Werte
-- Entfernung unrealistischer Einträge
-- Median-Imputation der verbleibenden Lücken
-
-### 3. Exploratory Data Analysis (EDA)
-- Visualisierung der Klassenverteilung (Countplot der Nutri-Score-Grades)
-
-### Geplante nächste Schritte
-- Weitere EDA (Korrelationen, Verteilungen der Nährstoffe pro Klasse)
-- Train/Test-Split und Modelltraining (z. B. Random Forest, Logistic Regression)
-- Modellbewertung (Accuracy, Confusion Matrix, Classification Report)
+Weitere Doku: [`Nova-Algorithmus_OpenFoodFacts.md`](Nova-Algorithmus_OpenFoodFacts.md) (wie OFF die `nova_group` vergibt).
 
 ## Setup
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install datasets pandas numpy matplotlib seaborn scikit-learn jupyter
-jupyter notebook PyTUMs.ipynb
+pip install -r requirements.txt jupyter
+jupyter notebook PyTUMs_Final_Project_Niklas-2.ipynb
 ```
 
-Optional: Hugging-Face-Token setzen (`HF_TOKEN`), um höhere Rate Limits beim Daten-Download zu erhalten.
+Abhängigkeiten: `datasets`, `pandas`, `numpy`, `matplotlib`, `seaborn`, `scikit-learn`, `scipy`, `pyarrow`.
+
+Optional: Hugging-Face-Token setzen (`HF_TOKEN`), um höhere Rate Limits beim Daten-Download zu erhalten. Die fertige Stichprobe liegt bereits als Parquet vor — ein erneutes Streaming ist nur nötig, wenn die Rohdaten neu gezogen werden sollen.
