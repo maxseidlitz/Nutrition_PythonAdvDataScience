@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Council-Verdikt — Adaption vor Abgabe?</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1a1a1a; --muted: #666; --line: #e2e2e2;
+    --card: #fafafa; --accent: #2b5c8a; --warn: #b3441e; --ok: #2d6a4f;
+    --code-bg: #f4f4f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#161618; --fg:#e8e8e8; --muted:#9a9a9a; --line:#2e2e32;
+            --card:#1e1e21; --accent:#7fb0dd; --warn:#e8845e; --ok:#7fc4a3;
+            --code-bg:#26262a; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2.5rem 1.25rem 4rem;
+    background: var(--bg); color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    line-height: 1.62; font-size: 16px;
+  }
+  .wrap { max-width: 820px; margin: 0 auto; }
+  header { border-bottom: 2px solid var(--fg); padding-bottom: 1.25rem; margin-bottom: 2rem; }
+  .kicker { font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: .5rem; }
+  h1 { font-size: 1.75rem; line-height: 1.25; margin: 0 0 .6rem; font-weight: 650; }
+  .sub { color: var(--muted); font-size: .93rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.5rem 0 .9rem; padding-bottom: .4rem; border-bottom: 1px solid var(--line); font-weight: 640; }
+  h3 { font-size: 1rem; margin: 1.5rem 0 .5rem; font-weight: 640; }
+  p { margin: 0 0 .9rem; }
+  ul { margin: 0 0 .9rem; padding-left: 1.15rem; }
+  li { margin-bottom: .5rem; }
+  code { background: var(--code-bg); padding: .12em .38em; border-radius: 3px; font-size: .87em;
+         font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .verdict { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--accent);
+             border-radius: 6px; padding: 1.25rem 1.4rem; margin: 1.5rem 0; }
+  .alert { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--warn);
+           border-radius: 6px; padding: 1.25rem 1.4rem; margin: 1.5rem 0; }
+  .alert .label { color: var(--warn); font-weight: 700; font-size: .78rem; letter-spacing: .1em;
+                  text-transform: uppercase; display: block; margin-bottom: .5rem; }
+  .first { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--ok);
+           border-radius: 6px; padding: 1.25rem 1.4rem; margin: 1.5rem 0; }
+  .first .label { color: var(--ok); font-weight: 700; font-size: .78rem; letter-spacing: .1em;
+                  text-transform: uppercase; display: block; margin-bottom: .5rem; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .9rem; }
+  th, td { text-align: left; padding: .6rem .7rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 640; color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; }
+  .scroll { overflow-x: auto; }
+  .pos { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0 1.5rem; }
+  .chip { border: 1px solid var(--line); background: var(--card); border-radius: 999px;
+          padding: .3rem .8rem; font-size: .82rem; }
+  .chip b { font-weight: 640; }
+  details { border: 1px solid var(--line); border-radius: 6px; margin-bottom: .6rem; background: var(--card); }
+  summary { cursor: pointer; padding: .8rem 1rem; font-weight: 600; font-size: .93rem; list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: "▸ "; color: var(--muted); }
+  details[open] summary::before { content: "▾ "; }
+  details .body { padding: 0 1rem 1rem; font-size: .93rem; color: var(--fg); }
+  details .body p:last-child { margin-bottom: 0; }
+  .role { color: var(--muted); font-weight: 400; font-size: .85em; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line);
+           color: var(--muted); font-size: .82rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">LLM Council · 5 Berater · 5 Peer-Reviews</div>
+  <h1>Adaption drei Tage vor Abgabe — oder ist das Notebook gut genug für die 1,0?</h1>
+  <p class="sub">PyTUMs Abschlussprojekt · Samstag, 18.07.2026 · Abgabe Dienstag, 21.07.2026</p>
+</header>
+
+<div class="alert">
+  <span class="label">Verifizierter Fund — vom Council übersehen, nachträglich geprüft</span>
+  <p style="margin-bottom:.6rem"><b>Der Parquet-Cache (162 MB) liegt nicht im Repository.</b> Die <code>.gitignore</code>-Regel <code>*.parquet</code> schließt ihn aus. Getrackt sind nur Notebook, README, <code>requirements.txt</code> und die Metadaten-JSON.</p>
+  <p style="margin-bottom:0">Konsequenz: Klont der Korrektor das Repo und führt „Restart &amp; Run All" aus, schlägt <code>os.path.exists(RAW_SAMPLE_PATH)</code> fehl, der <code>else</code>-Zweig greift — und das Notebook streamt <b>4,6 Millionen Produkte, 60–90 Minuten lang</b>, mit Internet- und HuggingFace-Abhängigkeit. Kein Berater hat danach gefragt; drei Peer-Reviewer haben unabhängig die Kategorie „Reproduzierbarkeit beim Korrektor" als blinden Fleck benannt.</p>
+</div>
+
+<h2>Wo der Council übereinstimmt</h2>
+<p>Vier von fünf Beratern kommen unabhängig auf denselben Kern: <b>Das Risiko liegt nicht im Notebook-Inhalt, sondern im Arbeitsprozess.</b> Drei dokumentierte Vorfälle still zerstörter Arbeit bei vier parallelen Editoren an einer 1,3-MB-JSON-Datei sind kein Pech, sondern ein Systemzustand.</p>
+<ul>
+  <li><b>Integritätsdefekte schlagen Verfeinerungen.</b> Zwei <code>[TODO]</code>-Platzhalter und ein README, das ein drei Versionen altes Projekt beschreibt, kosten mehr Punkte als jede fehlende Metrik — besonders bei einem Projekt, dessen Notenmotor „wir sind rigoros und selbstkritisch" lautet.</li>
+  <li><b>Erst einfrieren, dann anfassen.</b> Tag/Branch auf den aktuellen fehlerfreien Stand ist Vorbedingung für alles Weitere.</li>
+  <li><b>Ein Schreiber am Notebook.</b> Die übrigen drei arbeiten an README, Verteidigung und Review — nicht an <code>.ipynb</code>-Bytes.</li>
+  <li><b>Die Adaption ist machbar</b> — aber sequenziell, von einer Person, mit hartem Abbruchkriterium.</li>
+</ul>
+
+<h2>Wo der Council sich streitet</h2>
+
+<h3>Ist die Learning Curve der beste Zug oder eine Falle?</h3>
+<p>Der <b>Expansionist</b> nennt sie den unterbewertetsten Zug: Ein Plateau bei 100k widerlegt das Dozenten-Feedback „more data would be better" empirisch und dreht in der Verteidigung die Rollen um. Der <b>Contrarian</b> hält dagegen, dass das Ergebnis bereits vorweggenommen wurde („vermutlich zeigt die Kurve ein Plateau") — fällt sie anders aus, steht drei Tage vor Abgabe eine Zelle im Notebook, die dem Dozenten recht gibt und dem Team widerspricht. <b>Auflösung:</b> Der Contrarian gewinnt prozedural, der Expansionist inhaltlich — die Kurve zuerst lokal rechnen, dann entscheiden, ob sie hineinkommt.</p>
+
+<h3>Ist die Notenschätzung 1,7 → 1,0 realistisch?</h3>
+<p>Der <b>Contrarian</b> nennt sie Fiktion: Der Abstand zwischen 1,3 und 1,0 sei in deutschen Gruppenprojekten fast nie technisch, sondern Präsentation, Kohärenz und die Frage, ob der Dozent seine eigenen Feedback-Punkte adressiert sieht. Der <b>Außenstehende</b> geht weiter und fragt, woher die Zahlen überhaupt stammen — niemand hat die Bewertungsrubrik gelesen. Ein Peer-Reviewer ergänzt: Die 1,0 ist an vielen Lehrstühlen faktisch kontingentiert, die Optimierung darauf hat sinkenden Grenzertrag.</p>
+
+<h3>Vier Köpfe parallel nutzen oder bewusst brachliegen lassen?</h3>
+<p>Der <b>Expansionist</b> will alle vier parallel einsetzen (je eine Aufgabe, einer als „Merge-Wächter"). <b>Alle fünf Peer-Reviewer</b> haben genau das als größten blinden Fleck markiert: Es ist die Ursache aller drei Datenverluste, und ein „Merge-Wächter" ist ein Titel, kein Lock.</p>
+
+<h2>Peer-Review-Konsens</h2>
+<div class="scroll">
+<table>
+  <tr><th>Frage</th><th>Ergebnis</th></tr>
+  <tr><td>Stärkste Antwort</td><td><b>Der Umsetzer — 5 von 5 Stimmen.</b> Einzige mit ausführbarem Zeitplan, Rollen, Laufzeitwarnung und Abbruchkriterium („45 Minuten, dann Freeze"). Streicht als einzige aktiv Scope (Varianzschätzung).</td></tr>
+  <tr><td>Größter blinder Fleck</td><td><b>Der Expansionist — 5 von 5 Stimmen.</b> Bester Einzelgedanke des Councils (Macro-F1 ↔ Kollaps von NOVA-Gruppe 3 zeigen auf denselben Punkt), aber empfiehlt parallele Editoren und Workshop-Paper-Ambition bei 72 Stunden Restzeit.</td></tr>
+</table>
+</div>
+<p class="sub" style="font-size:.85rem">Anmerkung: Ein Reviewer warf dem Expansionisten vor, den Wert „Recall 0,32" für NOVA-Gruppe 3 erfunden zu haben. Das ist nachprüfbar falsch — die Zahl steht real im Output der Leakage-Check-Zelle des Notebooks.</p>
+
+<h2>Blinde Flecken, die erst die Peer-Review gefunden hat</h2>
+<ul>
+  <li><b>Abgabeformat.</b> Wird eine <code>.ipynb</code>, ein Repo-Link oder ein HTML/PDF-Export eingereicht? Bei einem Export entscheidet der Export, nicht das Notebook.</li>
+  <li><b>Reproduzierbarkeit beim Korrektor</b> — von drei Reviewern unabhängig genannt und oben bestätigt: Die Datengrundlage fehlt im Repo.</li>
+  <li><b>Der Freeze-Tag muss verifiziert werden.</b> Ein Tag, aus dem nie frisch geklont und ausgeführt wurde, ist keine Absicherung.</li>
+  <li><b><code>nbstripout</code> / <code>nbdime</code></b> entschärfen Notebook-Merge-Konflikte strukturell — alle fünf Berater behandelten das Problem rein sozial („ein Schreiber").</li>
+  <li><b><code>class_weight</code> ist kein Ein-Zeilen-Eingriff.</b> Es erzwingt ein vollständiges Re-Run aller abhängigen Zellen, sonst stehen inkonsistente Outputs nebeneinander.</li>
+  <li><b>Schon Sonntag eine abgabefähige Version hochladen.</b> Das macht jeden Montagsschaden folgenlos.</li>
+  <li><b>Rückfrage beim Dozenten</b> zu „more data" ist billiger und wirksamer als jede Learning Curve.</li>
+</ul>
+
+<h2>Die Empfehlung</h2>
+<div class="verdict">
+  <p><b>Ja zur Adaption — aber erst an Position vier, und nur wenn Position eins bis drei stehen.</b></p>
+  <p>Das Notebook ist inhaltlich bereits auf 1,0-Niveau. Was zwischen euch und dieser Note steht, ist nicht Methodik, sondern Auslieferung: Ein Korrektor, der eine veraltete README, zwei <code>[TODO]</code> und ein Notebook vorfindet, das bei ihm 90 Minuten lang Daten streamt, vergibt keine 1,0 — unabhängig davon, wie gut eure Leakage-Analyse ist.</p>
+  <p style="margin-bottom:0">Die Reihenfolge lautet deshalb: <b>(1)</b> Reproduzierbarkeit sichern — Parquet-Cache aus der <code>.gitignore</code> nehmen und mit ausliefern oder einen dokumentierten Download-Pfad ergänzen. <b>(2)</b> TODOs füllen — der Text existiert bereits vollständig und muss nur neu eingesetzt werden. <b>(3)</b> README. <b>(4)</b> Dann, mit verbleibender Zeit, <code>class_weight</code> + Macro-F1 und die Learning Curve — von einer Person, sequenziell, mit Abbruch nach 45 Minuten.</p>
+</div>
+<p>Die Varianzschätzung über mehrere Splits wird gestrichen. Sie ist methodisch richtig, hat aber keinen sauberen Ein-Stunden-Pfad und zwingt euch, die halbe Ergebnistabelle neu zu erzählen. Zwei Sätze im Limitations-Abschnitt decken euch in der Verteidigung vollständig ab.</p>
+
+<div class="first">
+  <span class="label">Das eine, was zuerst zu tun ist</span>
+  <p style="margin-bottom:0">Den aktuellen, fehlerfrei durchlaufenden Stand einfrieren: Branch oder Tag setzen — und aus diesem Tag einmal frisch in ein leeres Verzeichnis klonen und prüfen, ob das Notebook dort tatsächlich lauffähig ist. Dieser eine Test beantwortet gleichzeitig die Freeze-Frage und die Reproduzierbarkeitsfrage. Alles andere kommt danach.</p>
+</div>
+
+<h2>Die vollständigen Berater-Antworten</h2>
+
+<details>
+  <summary>Der Contrarian <span class="role">— „Der fatale Fehler ist nicht im Notebook, er ist im Prozess"</span></summary>
+  <div class="body">
+    <p>Ihr habt drei dokumentierte Vorfälle stillen Arbeitsverlusts. Der dritte war heute. Und eure Reaktion darauf ist: mehr parallel editieren. Ihr behandelt ein 1,4-MB-JSON-Artefakt mit vier gleichzeitigen Schreibern, als wäre es Code mit Zeilendiff. Ist es nicht. Das Risiko der Adaption ist nicht „1 Stunde Arbeit" — es ist, dass ein Merge am Montagabend eure Leakage-Analyse frisst, den besten Teil des Projekts, und es niemand merkt, weil 106 Zellen niemand nochmal liest.</p>
+    <p>Zweiter Fehler: Ihr habt das Ergebnis der Learning Curve schon geschrieben. „Vermutlich zeigt die Kurve ein Plateau." Wenn sie das nicht tut, habt ihr drei Tage vor Abgabe eine Zelle, die dem Dozenten empirisch recht gibt und euch widerspricht. Führt sie lokal aus, <i>bevor</i> ihr entscheidet, ob sie reinkommt.</p>
+    <p>Dritter, unbequemster Punkt: <code>class_weight="balanced"</code> kann eure Hauptzahl senken. Dann steht in eurer Vergleichstabelle ein schlechteres Modell — und in der mündlichen Verteidigung müsst ihr souverän erklären, warum das der Fortschritt ist. Könnt ihr das? Alle vier?</p>
+    <p>Und die Notenschätzung ist Fiktion. 1,7 → 1,0 durch eine Stunde sklearn? Der Abstand zwischen 1,3 und 1,0 ist in deutschen Gruppenprojekten fast nie technisch. Er ist Präsentation, Kohärenz und ob der Dozent seine eigenen Feedback-Punkte adressiert sieht.</p>
+  </div>
+</details>
+
+<details>
+  <summary>Der First-Principles-Denker <span class="role">— „Ihr habt kein Modellierungsproblem, ihr habt ein Concurrency-Problem"</span></summary>
+  <div class="body">
+    <p>„Adaption ja oder nein" setzt voraus, dass die Note eine Funktion des Notebook-Inhalts ist. Ist sie nicht. Sie ist eine Funktion davon, was ein Mensch in vielleicht 40 Minuten Lesezeit wahrnimmt — multipliziert mit der Wahrscheinlichkeit, dass das Artefakt am Dienstag überhaupt noch intakt ist.</p>
+    <p>Zerlegt eure vier „Schwächen" neu. <b>Integritätsdefekte:</b> Ein <code>[TODO]</code> und ein README, das ein anderes Projekt beschreibt, sind keine methodischen Lücken — sie sind Beweise für Unsauberkeit. Ein Korrektor, der ein TODO sieht, liest den Rest misstrauischer. Das kostet euch besonders viel, weil euer ganzer Notenmotor „wir sind rigoros und selbstkritisch" heißt. <b>Verfeinerungen:</b> Macro-F1 und Varianzschätzung machen ein 1,3-Notebook zu einem 1,0-Notebook — aber nur, wenn der Leser überhaupt so weit kommt.</p>
+    <p>Die entfernte Annahme ist aber eine andere: „Vier Leute editieren parallel dasselbe Notebook." Das ist keine Randbedingung, das ist die Ursache aller drei Datenverluste — und ihr behandelt sie als gegeben. Erst Integrität herstellen, committen, taggen. Dann die eine Stunde Adaption, sequenziell.</p>
+  </div>
+</details>
+
+<details>
+  <summary>Der Expansionist <span class="role">— „Ihr unterschätzt, was ihr in der Hand habt"</span></summary>
+  <div class="body">
+    <p>Ihr diskutiert über eine 1,0 — aber das eigentliche Aufwärtspotenzial liegt gar nicht in der Note. Ihr habt zwei Dinge produziert, die in Master-Abschlussprojekten praktisch nie vorkommen: eine selbst entdeckte und quantifizierte Sampling-Verzerrung, deren Korrektur eure Ergebnisse auf 0,9 Prozentpunkte an publizierte Literatur heranführt — und eine saubere Target-Leakage-Analyse mit Kontrollmodell, die eine eigene, scheinbar widerlegte Hypothese rehabilitiert.</p>
+    <p>Die Learning Curve ist euer unterbewertetster Zug. Sie beantwortet nicht nur „more data would be better" — sie widerlegt den Dozenten empirisch mit seiner eigenen Priorität. Ein Plateau bei 100k zeigt: Der Engpass ist Label-Qualität, nicht Stichprobengröße.</p>
+    <p>Macro-F1 ist mehr als Metrik-Kosmetik: Es macht sichtbar, dass NOVA-Gruppe 3 der eigentlich schwierige Fall ist — und Gruppe 3 ist genau die, die unter Leakage-Entfernung kollabiert (Recall 0,32). Zwei eurer Befunde zeigen auf denselben Punkt. Verbindet sie, und aus zwei Einzelbeobachtungen wird eine These.</p>
+    <p>Und das Framing: Verkauft das Notebook nicht als „Wir sagen NOVA vorher", sondern als „Wir haben untersucht, ob NOVA überhaupt vorhersagbar ist — und gefunden, dass die scheinbare Vorhersagbarkeit größtenteils Konstruktionsartefakt ist."</p>
+  </div>
+</details>
+
+<details>
+  <summary>Der Außenstehende <span class="role">— „Was sieht der Korrektor in den ersten 90 Sekunden?"</span></summary>
+  <div class="body">
+    <p><b>Hat jemand von euch die Bewertungsrubrik gelesen?</b> In eurer gesamten Darstellung kommt kein Wort über die tatsächlichen Bewertungskriterien vor. Ihr schätzt „1,7–2,0" und „potenziell 1,0–1,3" — woher? Ihr optimiert gegen ein Modell des Dozenten in eurem Kopf, nicht gegen das Dokument.</p>
+    <p><b>Was sieht der Korrektor zuerst?</b> Er öffnet das Repo. Da liegt eine README, die ein anderes Projekt beschreibt. Dann öffnet er das Notebook und findet zwei <code>[TODO]</code>. Das ist der komplette Ersteindruck: veraltet und unfertig. Eure Leakage-Analyse sitzt irgendwo bei Zelle 70. Ihr diskutiert 60 Minuten Modellarbeit, während das Schaufenster kaputt ist.</p>
+    <p><b>Und die Frage, die niemand stellt:</b> Erklärt euer Notebook einem Fremden, was NOVA überhaupt ist und warum die Leakage-Entdeckung wichtig ist — oder setzt es voraus, dass der Leser eure letzten sechs Wochen mitgemacht hat? Der Fluch des Wissens trifft euch genau hier: Eure beste Arbeit ist die, die am meisten Vorwissen zum Verstehen braucht.</p>
+  </div>
+</details>
+
+<details>
+  <summary>Der Umsetzer <span class="role">— „Machen. Aber nicht zu viert am selben File." (stärkste Antwort, 5/5 Stimmen)</span></summary>
+  <div class="body">
+    <p><b>Heute, 20 Minuten, eine Person:</b> Freeze-Branch plus Tag auf den aktuellen fehlerfreien Stand — ohne diesen Schritt macht ihr gar nichts anderes. Die zwei TODOs füllen: keine Adaption, sondern Schadensbehebung an einem sichtbaren Loch. README: 15 Minuten, null technisches Risiko.</p>
+    <p><b>Sonntag, Adaption von EINER Person in EINEM Block:</b> <code>class_weight="balanced"</code> als zusätzliche Zeile, nicht als Ersatz. <code>f1_macro</code> in die bestehende Tabelle. Wenn das nach 45 Minuten nicht sauber durchläuft: abbrechen, Freeze-Branch, fertig. Learning Curve mit <code>train_sizes=np.linspace(0.1,1.0,5)</code>, <code>cv=3</code>, <code>n_jobs=-1</code> — auf 100k Zeilen mit Random Forest teuer, vorher auf 20k testen. Die anderen drei arbeiten an der Verteidigung.</p>
+    <p><b>Was ich streiche:</b> die Varianzschätzung. Klingt richtig, hat aber keinen sauberen Ein-Stunden-Pfad — Repeated-CV über sechs Modelle mit GridSearch sprengt die Laufzeit und zwingt euch, die halbe Tabelle neu zu erzählen. Zwei Sätze im Limitations-Abschnitt.</p>
+    <p><b>Montag: kein Code mehr.</b> Einmal Restart &amp; Run All, Outputs prüfen, committen. Dienstag ist nur Abgabe.</p>
+  </div>
+</details>
+
+<h2>Peer-Review-Runde im Detail</h2>
+<details>
+  <summary>Fünf anonymisierte Reviews — Konsens und Widerspruch</summary>
+  <div class="body">
+    <p><b>Einstimmig stärkste Antwort: Der Umsetzer.</b> Begründung über alle Reviews hinweg: als einzige vollständig handlungsfähig, mit Reihenfolge, Rollen, Abbruchkriterium und aktivem Streichen von Scope. Mehrere Reviewer merken an, dass Contrarian und First-Principles-Denker das Concurrency-Problem <i>schärfer diagnostizieren</i>, aber operativ vage bleiben — der Umsetzer setzt deren Diagnose korrekt um.</p>
+    <p><b>Einstimmig größter blinder Fleck: Der Expansionist.</b> Trotz des besten Einzelgedankens (Macro-F1 ↔ Gruppe-3-Kollaps) empfiehlt er parallele Editoren an genau der Datei, deren Concurrency dreimal Arbeit vernichtet hat. „Merge-Wächter ist ein Titel, kein Lock." Workshop-Paper-Ambition bei 72 Stunden Restzeit wird durchgehend als Ablenkung bewertet.</p>
+    <p><b>Kritik auch am Contrarian:</b> Ein Reviewer hält „nahezu 100 % Verlustwahrscheinlichkeit" für Dramatik statt Basisrate — erkennt aber an, dass sein Kern (Learning Curve erst lokal prüfen) der einzige echte Falsifikationstest im ganzen Council ist.</p>
+    <p><b>Eine Fehlbehauptung in der Review-Runde:</b> Ein Reviewer wirft dem Expansionisten vor, „Recall 0,32" erfunden zu haben. Nachgeprüft: Die Zahl steht real im Output der Leakage-Check-Zelle. Die Kritik ist unbegründet.</p>
+  </div>
+</details>
+
+<footer>
+  Council-Sitzung vom 18.07.2026 · 5 Berater, 5 Peer-Reviews, 1 Chairman-Synthese ·
+  Verifizierte Faktenprüfung des Repositories nach der Review-Runde ergänzt ·
+  Methodik nach Andrej Karpathys LLM Council
+</footer>
+
+</div>
+</body>
+</html>
