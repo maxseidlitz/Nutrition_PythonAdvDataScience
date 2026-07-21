@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10 · Preprocessing for Machine Learning</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f1c17;
+      --bg-card: #163028;
+      --bg-card-alt: #1a3a30;
+      --line: #2d5446;
+      --accent: #3dba8a;
+      --accent-soft: rgba(61, 186, 138, 0.15);
+      --accent-warm: #e8b86d;
+      --text: #eef6f1;
+      --muted: #9bb5a8;
+      --white: #ffffff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: #050a08;
+      color: var(--text);
+      font-family: "DM Sans", system-ui, sans-serif;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      padding: 1.5rem;
+      background:
+        radial-gradient(ellipse 80% 60% at 10% 0%, rgba(61, 186, 138, 0.12), transparent 55%),
+        radial-gradient(ellipse 50% 40% at 90% 100%, rgba(232, 184, 109, 0.08), transparent 50%),
+        #050a08;
+    }
+
+    .slide {
+      width: min(1280px, 100%);
+      aspect-ratio: 16 / 9;
+      background:
+        linear-gradient(145deg, #14261f 0%, var(--bg) 45%, #0c1612 100%);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: clamp(1.4rem, 2.4vw, 2.4rem) clamp(1.6rem, 2.8vw, 2.8rem);
+      display: flex;
+      flex-direction: column;
+      gap: clamp(0.9rem, 1.6vw, 1.4rem);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .slide::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(61, 186, 138, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(61, 186, 138, 0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,0.35), transparent 70%);
+      pointer-events: none;
+    }
+
+    .header {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 1rem;
+    }
+
+    .kicker {
+      font-size: clamp(0.7rem, 1vw, 0.85rem);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+    }
+
+    h1 {
+      font-size: clamp(1.5rem, 2.6vw, 2.15rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+    }
+
+    .meta {
+      text-align: right;
+      color: var(--muted);
+      font-size: clamp(0.72rem, 1vw, 0.85rem);
+      line-height: 1.45;
+      white-space: nowrap;
+    }
+
+    .meta strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .flow {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      flex: 1;
+      min-height: 0;
+      justify-content: space-between;
+    }
+
+    .step {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: clamp(0.45rem, 0.9vw, 0.7rem) clamp(0.7rem, 1.2vw, 1rem);
+      display: grid;
+      grid-template-columns: 2rem 10.5rem 1fr;
+      gap: 0.75rem;
+      align-items: start;
+      transition: border-color 0.2s ease;
+    }
+
+    .step:hover { border-color: var(--accent); }
+
+    .step-num {
+      width: 1.55rem;
+      height: 1.55rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      display: grid;
+      place-items: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      font-family: "IBM Plex Mono", monospace;
+      margin-top: 0.1rem;
+    }
+
+    .step h2 {
+      font-size: clamp(0.82rem, 1.15vw, 0.98rem);
+      font-weight: 650;
+      line-height: 1.25;
+      letter-spacing: -0.01em;
+      padding-top: 0.2rem;
+    }
+
+    .step p {
+      font-size: clamp(0.68rem, 0.95vw, 0.8rem);
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .step p strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .step code {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.72em;
+      color: var(--accent-warm);
+      background: rgba(232, 184, 109, 0.1);
+      padding: 0.08em 0.35em;
+      border-radius: 4px;
+    }
+
+    .arrow { display: none; }
+
+    .detail-row {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1.35fr 1fr 1fr;
+      gap: 0.55rem;
+    }
+
+    .card {
+      background: var(--bg-card-alt);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: clamp(0.7rem, 1.1vw, 0.95rem) clamp(0.8rem, 1.2vw, 1.05rem);
+    }
+
+    .card h3 {
+      font-size: clamp(0.72rem, 1vw, 0.82rem);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+    }
+
+    .card ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.28rem;
+    }
+
+    .card li {
+      font-size: clamp(0.68rem, 0.95vw, 0.8rem);
+      color: var(--muted);
+      line-height: 1.35;
+      padding-left: 0.85rem;
+      position: relative;
+    }
+
+    .card li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.45em;
+      width: 0.35rem;
+      height: 0.35rem;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0.7;
+    }
+
+    .card li strong { color: var(--text); font-weight: 600; }
+
+    .footer {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding-top: 0.15rem;
+      border-top: 1px solid rgba(45, 84, 70, 0.6);
+      font-size: clamp(0.65rem, 0.9vw, 0.75rem);
+      color: var(--muted);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid rgba(61, 186, 138, 0.35);
+      border-radius: 999px;
+      padding: 0.28rem 0.7rem;
+      font-weight: 600;
+      font-size: clamp(0.65rem, 0.9vw, 0.75rem);
+    }
+
+    .pill span {
+      width: 0.4rem;
+      height: 0.4rem;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    @media (max-width: 900px) {
+      .slide { aspect-ratio: auto; min-height: auto; }
+      .step { grid-template-columns: 2rem 1fr; }
+      .step h2 { grid-column: 2; }
+      .step p { grid-column: 1 / -1; }
+      .detail-row { grid-template-columns: 1fr; }
+      .header { flex-direction: column; align-items: flex-start; }
+      .meta { text-align: left; white-space: normal; }
+    }
+
+    @media print {
+      body { background: #fff; padding: 0; }
+      .slide {
+        box-shadow: none;
+        border-radius: 0;
+        width: 100%;
+        height: 100vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <article class="slide" role="img" aria-label="Preprocessing for Machine Learning workflow slide">
+    <header class="header">
+      <div>
+        <p class="kicker">Section 10 · Supervised Learning Setup</p>
+        <h1>Preprocessing for Machine Learning</h1>
+      </div>
+      <div class="meta">
+        Target: <strong>NOVA Group 1–4</strong><br />
+        Features: <strong>12</strong> (11 numeric + 1 categorical)
+      </div>
+    </header>
+
+    <section class="flow" aria-label="Preprocessing workflow">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h2>Feature &amp; Target</h2>
+        <p>
+          <strong>What:</strong> We tell the model what to look at and what to predict.
+          Inputs <code>X</code> = 9 nutrient values per 100&nbsp;g + number of additives + number of ingredients + product category
+          (12 columns total). Output <code>y</code> = the NOVA group (1–4) we want to predict.
+        </p>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <h2>Stratified Split</h2>
+        <p>
+          <strong>What:</strong> We randomly split products into a training set (80%, 18,724 products) to learn patterns
+          and a test set (20%, 4,682 products) to check performance later.
+          <strong>Why “stratified”:</strong> each NOVA class keeps the same share in both sets
+          (e.g. group&nbsp;4 ≈ 65%), so rare classes like group&nbsp;2 are not lost in the test set.
+        </p>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <h2>Median Imputation</h2>
+        <p>
+          <strong>What:</strong> Many products have missing nutrient values (<code>NaN</code>). For each numeric column,
+          we replace missing values with that column’s <strong>median from the training data only</strong>
+          (<code>SimpleImputer(strategy="median")</code>.
+          <strong>Why:</strong> most models cannot handle empty cells; the median is robust to extreme values
+          (better than the mean for skewed nutrients).
+        </p>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <h2>StandardScaler</h2>
+        <p>
+          <strong>What:</strong> After filling gaps, we rescale every numeric feature so it has mean ≈ 0 and
+          standard deviation ≈ 1 (<code>StandardScaler</code>).
+          <strong>Why:</strong> energy is often hundreds of kcal, fiber only a few grams — without scaling,
+          large-range features would dominate distance- or weight-based models unfairly.
+        </p>
+      </div>
+
+      <div class="step">
+        <div class="step-num">5</div>
+        <h2>One-Hot Encoding</h2>
+        <p>
+          <strong>What:</strong> Product category is text (e.g. beverages). We convert it into several 0/1 columns —
+          one per category (<code>OneHotEncoder</code>).
+          <strong>Why:</strong> models need numbers, not words. <code>handle_unknown="ignore"</code> means:
+          if the test set has a new category, we don’t crash — that row simply gets zeros for all known category columns.
+        </p>
+      </div>
+    </section>
+
+    <section class="detail-row">
+      <div class="card">
+        <h3>Pipeline Principle</h3>
+        <ul>
+          <li><strong>ColumnTransformer</strong>: separate numeric &amp; categorical branches</li>
+          <li>Fit only inside the model <code>Pipeline</code> on <code>X_train</code></li>
+          <li>Test set gets <code>transform</code> only → no information leakage</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Why Median?</h3>
+        <ul>
+          <li>Models need complete inputs</li>
+          <li>More robust than the mean for skewed nutrient values</li>
+          <li>Keep more rows instead of dropping them</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Same Methodology</h3>
+        <ul>
+          <li>NOVA (main task) &amp; Nutri-Score (benchmark)</li>
+          <li>Only the target differs</li>
+          <li>Reproducible via <code>SEED</code></li>
+        </ul>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="pill"><span></span> sklearn Pipeline · ColumnTransformer</div>
+      <div>PyTUMs Final Project · Open Food Facts</div>
+    </footer>
+  </article>
+</body>
+</html>
